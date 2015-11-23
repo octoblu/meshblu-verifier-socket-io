@@ -4,7 +4,6 @@ Meshblu = require 'meshblu'
 
 class Verifier
   constructor: ({@meshbluConfig, @onError}) ->
-    @meshbluConfig.options = transports: ['websocket']
 
   _connect: =>
     @meshblu = Meshblu.createConnection @meshbluConfig

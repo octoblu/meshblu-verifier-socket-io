@@ -27,15 +27,15 @@ describe 'Verifier', ->
     @meshblu.stop => done()
 
   describe '-> verify', ->
+    beforeEach ->
+      meshbluConfig = server: 'localhost', port: 0xd00d
+      @sut = new Verifier {meshbluConfig}
+
     context 'when everything works', ->
       beforeEach ->
-        meshbluConfig = server: 'localhost', port: 0xd00d
-
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
         @unregisterHandler.yields null
-
-        @sut = new Verifier {meshbluConfig}
 
       beforeEach (done) ->
         @sut.verify (@error) =>
@@ -48,10 +48,6 @@ describe 'Verifier', ->
         expect(@unregisterHandler).to.be.called
 
     context 'when register fails', ->
-      beforeEach ->
-        meshbluConfig = server: 'localhost', port: 0xd00d
-        @sut = new Verifier {meshbluConfig}
-
       beforeEach (done) ->
         @registerHandler.yields error: 'something wrong'
 
@@ -63,10 +59,6 @@ describe 'Verifier', ->
         expect(@registerHandler).to.be.called
 
     context 'when whoami fails', ->
-      beforeEach ->
-        meshbluConfig = server: 'localhost', port: 0xd00d
-        @sut = new Verifier {meshbluConfig}
-
       beforeEach (done) ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields error: 'something wrong'
@@ -80,10 +72,6 @@ describe 'Verifier', ->
         expect(@whoamiHandler).to.be.called
 
     context 'when unregister fails', ->
-      beforeEach ->
-        meshbluConfig = server: 'localhost', port: 0xd00d
-        @sut = new Verifier {meshbluConfig}
-
       beforeEach (done) ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
