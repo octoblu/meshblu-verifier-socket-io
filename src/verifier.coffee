@@ -9,12 +9,19 @@ class Verifier
     @meshblu = Meshblu.createConnection @meshbluConfig
     @meshblu.socket.on 'connect_error', @onError
     @meshblu.socket.on 'error', @onError
+    @meshblu.on 'notReady', ({code,message}) =>
+      error = new Error message || 'Meshblu Error'
+      error.code = code
+      @onError error
 
   _register: (callback) =>
     @_connect()
     @meshblu.once 'ready', =>
       @meshblu.register type: 'meshblu:verifier', (@device) =>
-        return callback new Error @device.error if @device?.error?
+        if @device?.error?
+          error = new Error @device.error
+          error.code = @device.code
+          return callback error
 
         @meshbluConfig.uuid = @device.uuid
         @meshbluConfig.token = @device.token

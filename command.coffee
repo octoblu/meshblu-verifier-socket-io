@@ -27,6 +27,7 @@ class Command
   die: (error) =>
     return process.exit(0) unless error?
     console.log 'meshblu-verifier-socket.io error'
+    console.log "Code: #{error.code}"
     console.error error.stack
     process.exit 1
 
