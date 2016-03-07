@@ -3,7 +3,8 @@ async = require 'async'
 Meshblu = require 'meshblu'
 
 class Verifier
-  constructor: ({@meshbluConfig, @onError}) ->
+  constructor: ({@meshbluConfig, @onError, @nonce}) ->
+    @nonce ?= Date.now()
 
   _connect: =>
     @meshblu = Meshblu.createConnection @meshbluConfig
@@ -30,6 +31,19 @@ class Verifier
         @meshblu.once 'ready', (device) =>
           callback()
 
+  _update: (callback) =>
+    return callback() unless @device?
+
+    params =
+      uuid: @meshbluConfig.uuid
+      nonce: @nonce
+
+    @meshblu.update params, (data) =>
+      return callback new Error data.error if data?.error?
+      @meshblu.whoami {}, (data) =>
+        return callback new Error 'update failed' unless data?.nonce == @nonce
+        callback()
+
   _whoami: (callback) =>
     @meshblu.whoami {}, (data) =>
       return callback new Error data.error if data?.error?
@@ -45,6 +59,7 @@ class Verifier
     async.series [
       @_register
       @_whoami
+      @_update
       @_unregister
     ], (error) =>
       @meshblu.close()
