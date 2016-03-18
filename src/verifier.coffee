@@ -31,6 +31,17 @@ class Verifier
         @meshblu.once 'ready', (device) =>
           callback()
 
+  _message: (callback) =>
+    @meshblu.once 'message', (data) =>
+      return callback new Error 'wrong message received' unless data?.payload == @nonce
+      callback()
+
+    message =
+      devices: [@meshbluConfig.uuid]
+      payload: @nonce
+
+    @meshblu.message message
+
   _update: (callback) =>
     return callback() unless @device?
 
@@ -59,6 +70,7 @@ class Verifier
     async.series [
       @_register
       @_whoami
+      @_message
       @_update
       @_unregister
     ], (error) =>

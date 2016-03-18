@@ -9,6 +9,7 @@ describe 'Verifier', ->
     @whoamiHandler = sinon.stub()
     @updateHandler = sinon.stub()
     @unregisterHandler = sinon.stub()
+    @messageHandler = sinon.stub()
     @identityHandler = sinon.spy ->
       @emit 'ready', uuid: 'some-device', token: 'some-token'
 
@@ -17,6 +18,9 @@ describe 'Verifier', ->
       socket.on 'whoami', @whoamiHandler
       socket.on 'update', @updateHandler
       socket.on 'unregister', @unregisterHandler
+      socket.on 'message', (data) =>
+        @messageHandler data, (response) =>
+          socket.emit 'message', response
       socket.on 'error', (error) ->
         throw error
 
@@ -38,6 +42,7 @@ describe 'Verifier', ->
       beforeEach ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
+        @messageHandler.yields payload: @nonce
         @updateHandler.yields null
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier', nonce: @nonce
         @unregisterHandler.yields null
@@ -77,11 +82,27 @@ describe 'Verifier', ->
         expect(@registerHandler).to.be.called
         expect(@whoamiHandler).to.be.called
 
+    context 'when message fails', ->
+      beforeEach (done) ->
+        @registerHandler.yields uuid: 'some-device'
+        @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
+        @messageHandler.yields error: 'something wrong'
+
+        @sut.verify (@error) =>
+          done()
+
+      it 'should error', ->
+        expect(@error).to.exist
+        expect(@registerHandler).to.be.called
+        expect(@whoamiHandler).to.be.called
+        expect(@messageHandler).to.be.called
+
     context 'when update fails', ->
       beforeEach (done) ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
         @updateHandler.yields error: 'something wrong'
+        @messageHandler.yields payload: @nonce
 
         @sut.verify (@error) =>
           done()
@@ -96,6 +117,7 @@ describe 'Verifier', ->
       beforeEach (done) ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
+        @messageHandler.yields payload: @nonce
         @updateHandler.yields null
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier', nonce: @nonce
         @unregisterHandler.yields error: 'something wrong'
