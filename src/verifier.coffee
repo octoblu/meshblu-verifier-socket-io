@@ -56,7 +56,8 @@ class Verifier
         callback()
 
   _whoami: (callback) =>
-    @meshblu.whoami {}, (data) =>
+    @meshblu.device {uuid: @meshbluConfig.uuid}, (data) =>
+      console.log 'getdevice', data
       return callback new Error data.error if data?.error?
       callback()
 
