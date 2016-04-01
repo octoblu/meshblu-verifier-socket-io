@@ -1,6 +1,6 @@
 {
   "name": "meshblu-verifier-socket.io",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Verify Meshblu over socket.io",
   "main": "index.js",
   "scripts": {
