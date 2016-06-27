@@ -1,6 +1,4 @@
-_           = require 'lodash'
 commander   = require 'commander'
-debug       = require('debug')('meshblu-verifier-socket.io:command')
 packageJSON = require './package.json'
 Verifier    = require './src/verifier'
 MeshbluConfig = require 'meshblu-config'

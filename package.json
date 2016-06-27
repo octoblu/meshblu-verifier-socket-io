@@ -1,6 +1,6 @@
 {
   "name": "meshblu-verifier-socket.io",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Verify Meshblu over socket.io",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,7 @@
     "coffee-script": "^1.10.0",
     "commander": "^2.9.0",
     "lodash": "^3.10.1",
-    "meshblu": "^1.31.3",
-    "meshblu-config": "^3.1.1"
+    "meshblu": "^2.0.2",
+    "meshblu-config": "^5.1.2"
   }
 }

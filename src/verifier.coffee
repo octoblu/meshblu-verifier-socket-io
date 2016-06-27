@@ -1,4 +1,3 @@
-_ = require 'lodash'
 async = require 'async'
 Meshblu = require 'meshblu'
 
@@ -6,14 +5,36 @@ class Verifier
   constructor: ({@meshbluConfig, @onError, @nonce}) ->
     @nonce ?= Date.now()
 
+  verify: (callback) =>
+    async.series [
+      @_register
+      @_whoami
+      @_message
+      @_update
+      @_unregister
+    ], (error) =>
+      @meshblu.close()
+      callback error
+
   _connect: =>
-    @meshblu = Meshblu.createConnection @meshbluConfig
-    @meshblu.socket.on 'connect_error', @onError
-    @meshblu.socket.on 'error', @onError
-    @meshblu.on 'notReady', ({code,message}) =>
-      error = new Error message || 'Meshblu Error'
-      error.code = code
+    @meshblu = new Meshblu @meshbluConfig
+    @meshblu.on 'notReady', (error) =>
+      error = new Error "Meshblu Error: #{error.status}"
+      error.code = error.status
       @onError error
+    @meshblu.connect (error) =>
+      return @onError error if error?
+
+  _message: (callback) =>
+    @meshblu.once 'message', (data) =>
+      return callback new Error 'wrong message received' unless data?.payload == @nonce
+      callback()
+
+    message =
+      devices: [@meshbluConfig.uuid]
+      payload: @nonce
+
+    @meshblu.message message
 
   _register: (callback) =>
     @_connect()
@@ -28,19 +49,8 @@ class Verifier
         @meshbluConfig.token = @device.token
         @meshblu.close()
         @_connect()
-        @meshblu.once 'ready', (device) =>
+        @meshblu.once 'ready', =>
           callback()
-
-  _message: (callback) =>
-    @meshblu.once 'message', (data) =>
-      return callback new Error 'wrong message received' unless data?.payload == @nonce
-      callback()
-
-    message =
-      devices: [@meshbluConfig.uuid]
-      payload: @nonce
-
-    @meshblu.message message
 
   _update: (callback) =>
     return callback() unless @device?
@@ -51,14 +61,9 @@ class Verifier
 
     @meshblu.update params, (data) =>
       return callback new Error data.error if data?.error?
-      @meshblu.whoami {}, (data) =>
+      @meshblu.whoami (data) =>
         return callback new Error 'update failed' unless data?.nonce == @nonce
         callback()
-
-  _whoami: (callback) =>
-    @meshblu.whoami {}, (data) =>
-      return callback new Error data.error if data?.error?
-      callback()
 
   _unregister: (callback) =>
     return callback() unless @device?
@@ -66,15 +71,9 @@ class Verifier
       return callback new Error data.error if data?.error?
       callback()
 
-  verify: (callback) =>
-    async.series [
-      @_register
-      @_whoami
-      @_message
-      @_update
-      @_unregister
-    ], (error) =>
-      @meshblu.close()
-      callback error
+  _whoami: (callback) =>
+    @meshblu.whoami (data) =>
+      return callback new Error data.error if data?.error?
+      callback()
 
 module.exports = Verifier

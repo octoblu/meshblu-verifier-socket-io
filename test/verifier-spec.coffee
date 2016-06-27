@@ -1,4 +1,7 @@
-shmock = require 'shmock'
+{afterEach, beforeEach, context, describe, it} = global
+{expect} = require 'chai'
+sinon = require 'sinon'
+
 Verifier = require '../src/verifier'
 MockMeshbluSocketIO = require './mock-meshblu-socket-io'
 
@@ -31,15 +34,16 @@ describe 'Verifier', ->
     @meshblu.start done
 
   afterEach (done) ->
+    @timeout 100
     @meshblu.stop => done()
 
-  describe '-> verify', ->
+  describe '->verify', ->
     beforeEach ->
-      meshbluConfig = server: 'localhost', port: 0xd00d
+      meshbluConfig = protocol: 'ws', hostname: 'localhost', port: 0xd00d, resolveSrv: false
       @sut = new Verifier {meshbluConfig, @nonce}
 
     context 'when everything works', ->
-      beforeEach ->
+      beforeEach 'yielding a bunch', ->
         @registerHandler.yields uuid: 'some-device'
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier'
         @messageHandler.yields payload: @nonce
@@ -47,12 +51,10 @@ describe 'Verifier', ->
         @whoamiHandler.yields uuid: 'some-device', type: 'meshblu:verifier', nonce: @nonce
         @unregisterHandler.yields null
 
-      beforeEach (done) ->
-        @sut.verify (@error) =>
-          done @error
+      beforeEach 'verify', (done) ->
+        @sut.verify done
 
-      it 'should not error', ->
-        expect(@error).not.to.exist
+      it 'should have called all the handlers', ->
         expect(@registerHandler).to.be.called
         expect(@whoamiHandler).to.be.called
         expect(@updateHandler).to.be.called
