@@ -1,4 +1,4 @@
-async = require 'async'
+async   = require 'async'
 Meshblu = require 'meshblu'
 
 class Verifier
@@ -16,14 +16,14 @@ class Verifier
       @meshblu.close()
       callback error
 
-  _connect: =>
+  _connect: (callback) =>
     @meshblu = new Meshblu @meshbluConfig
-    @meshblu.on 'notReady', (error) =>
+    @meshblu.once 'notReady', (error) =>
       error = new Error "Meshblu Error: #{error.status}"
       error.code = error.status
-      @onError error
+      callback error
     @meshblu.connect (error) =>
-      return @onError error if error?
+      return callback error if error?
 
   _message: (callback) =>
     @meshblu.once 'message', (data) =>
@@ -37,7 +37,7 @@ class Verifier
     @meshblu.message message
 
   _register: (callback) =>
-    @_connect()
+    @_connect(callback)
     @meshblu.once 'ready', =>
       @meshblu.register type: 'meshblu:verifier', (@device) =>
         if @device?.error?
