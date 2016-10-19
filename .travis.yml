@@ -1,23 +1,30 @@
 language: node_js
 node_js:
-- '6'
+  - '6'
 addons:
   code_climate:
     repo_token: 8e506e5386e606830c503b5827c0e1c086c2b4c2bd0d3f4bcbcb19bfe20b8803
 before_script:
   - npm install -g codeclimate-test-reporter
 after_script:
-- codeclimate-test-reporter < coverage/lcov.info
+  - codeclimate-test-reporter < coverage/lcov.info
 deploy:
   provider: npm
   email: serveradmin@octoblu.com
   api_key:
-    secure: LETEBuhFpR6u6aetPQsA5B8rFwaMZzdn+q9Wg3xGds+DOUSadePTll8VBSktScWycZqOn2nTmrZZCKvhXRPLPt4leCkua4JFDDmtfj3F5FliMUavYKTyuibG3qn4D/6tX877lybUc09NdlMtmYQGQik9/WdWnuNkwZ10BmNvtoqoAbpAJ42n/B9BANH3jk9tzpKA/qFOUQGXYzmJ2bM+08ohSntZYIWBWOdoWUR7o0qqUq4e6lUhSM7hyNDHA9aNPf63vxAuhRsn0vNzTnz2pP50ZfzvfVsgJEMI8Emw9kLDsw9iTeRoXaFVR7bor93EBEWA5k66cYhUXXozNxdqL+RYIaKHJj/fc5BIAK8uO+RLkpyhgmMnsQjuHNf9C6pamTg9E+cznRDYeQWY1+IuxiHboZu07vBVcU8v+gt5H9C7k/jH2cdyYEf+lyil2yoyKWE3Pod9y/q0jyjCZcWzXhkz5Ga4ABM6NGbp/HkgSUWqaS6iZrxOo3mVLQXdj9NaTthiQ4beO+h34E/9FHnRJLPJEFd2tmXM88WOSG2ZHGgje49z4+joK8qTa+DMnurw1RbTJKkoaWvtF0gR63DGUmQuc/CCCW05tKspt29txgpI3Ju68/l0xF70/CFqFfJtbgyvV3Y70fZySTHx8InLUQMnOL3zxnVOBdgTP2PY5Uk=
-  on:
+    secure: >-
+      LETEBuhFpR6u6aetPQsA5B8rFwaMZzdn+q9Wg3xGds+DOUSadePTll8VBSktScWycZqOn2nTmrZZCKvhXRPLPt4leCkua4JFDDmtfj3F5FliMUavYKTyuibG3qn4D/6tX877lybUc09NdlMtmYQGQik9/WdWnuNkwZ10BmNvtoqoAbpAJ42n/B9BANH3jk9tzpKA/qFOUQGXYzmJ2bM+08ohSntZYIWBWOdoWUR7o0qqUq4e6lUhSM7hyNDHA9aNPf63vxAuhRsn0vNzTnz2pP50ZfzvfVsgJEMI8Emw9kLDsw9iTeRoXaFVR7bor93EBEWA5k66cYhUXXozNxdqL+RYIaKHJj/fc5BIAK8uO+RLkpyhgmMnsQjuHNf9C6pamTg9E+cznRDYeQWY1+IuxiHboZu07vBVcU8v+gt5H9C7k/jH2cdyYEf+lyil2yoyKWE3Pod9y/q0jyjCZcWzXhkz5Ga4ABM6NGbp/HkgSUWqaS6iZrxOo3mVLQXdj9NaTthiQ4beO+h34E/9FHnRJLPJEFd2tmXM88WOSG2ZHGgje49z4+joK8qTa+DMnurw1RbTJKkoaWvtF0gR63DGUmQuc/CCCW05tKspt29txgpI3Ju68/l0xF70/CFqFfJtbgyvV3Y70fZySTHx8InLUQMnOL3zxnVOBdgTP2PY5Uk=
+  'on':
     tags: true
     branches: true
 after_success:
-- bash <(curl -s https://codecov.io/bash)
+  - npm run coverage
+  - 'npm run mocha:json'
+  - 'bash <(curl -s https://codecov.io/bash)'
+  - 'bash <(curl -s https://codecov.octoblu.com/bash)'
 branches:
   only:
-  - "/^v[0-9]/"
+    - '/^v[0-9]/'
+notifications:
+  webhooks:
+    - 'https://beekeeper.octoblu.com/webhooks/travis:ci'
